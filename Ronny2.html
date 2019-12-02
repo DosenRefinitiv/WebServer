@@ -1,0 +1,486 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+
+    <!-- Dory SDK (required) -->
+    <script src="https://dory-staging.financial.com/sdk/3wjU8FQx/polyfill.js"></script>
+    <script src="https://dory-staging.financial.com/sdk/3wjU8FQx/sdk.js"></script>
+
+    <!-- Widget files (required) -->
+
+    <script src="vendor.js"></script>
+    <script src="widgets.js"></script>
+    
+    <link rel="stylesheet" href="vendor.css" />
+    <link rel="stylesheet" href="widgets.css" />
+
+    <!-- The following "main.css" represents css of the page hosting the widgets.
+         It should be loaded after the widget files if you want to add css to overwrite styles  of the widgets. -->
+    <link rel="stylesheet" type="text/css" href="main.css" />
+
+    <title>Widget Integration Example</title>
+  </head>
+
+  <body>
+    <div class="page-header">
+        <img src="refinitiv-logo-schema.png" width= auto height="50">
+    </div>
+    <div class="page-content">
+      <div class="page-title">Widget Library Sample Code</div>
+      <div class="marquee">
+        <div class="inner">
+            <div class="ticker-band-widget"></div>
+        </div>
+      </div> 
+
+      <div class='IndexDropdown'>
+      <p>The select element defines a drop-down list:</p>
+
+        <!-- <form action="/index%20copy.html"> -->
+          <select id="IndexRIC" onchange="updateLists()">
+            <option value=".GDAXI">Dax</option>
+            <option value=".DJI">Dow Jones</option>
+            <option value=".FTSE">FTSE</option>
+            <option value=".FCHI">CAC40</option>
+            <option value=".OBX">Oslo Børs</option>
+            <option value=".FCHI">FTSE MIB</option>
+            <option value=".HSI">HSI</option>
+          </select>
+      </div>
+
+        <div class='listWidgets'>       
+          <button type="button" class="collapsible">Main Index Widget</button>
+          <div class="content"><div class="all_widgets"><div class="main-index-widget"></div></div></div>
+          <button type="button" class="collapsible">Market List Widget</button>
+          <div class="content"><div class="all_widgets">
+                <div class="trends-widget"></div>
+                <div class="market-list-widget"></div>
+              </div>
+          </div>
+          <button type="button" class="collapsible">Heatmap Widget</button>
+          <div class="content"><div class="all_widgets"><div class="heatmap-widget"></div></div></div>
+          <button type="button" class="collapsible">Tiles Widget</button>
+          <div class="content"><div class="all_widgets"><div class="market-tiles-widget"></div></div></div>
+          <!-- Available Markets for Winners-Losers-Widget: Oslo, Stockholm, Helsinki, Copenhagen, Nordic -->
+          <select id="WLMarket" onchange="updateWL()">
+            <option value="Oslo">Oslo</option>
+            <option value="Stockholm">Stockholm</option>
+            <option value="Helsinki">Helsinki</option>
+            <option value="Copenhagen">Copenhagen</option>
+            <option value="Nordic">Nordic</option>
+          </select>
+          <button type="button" class="collapsible">Winners  Widget</button>
+          <div class="content"><div class="all_widgets"><div class="winners-widget"></div></div></div>
+          <button type="button" class="collapsible">Losers Widget</button>
+          <div class="content"><div class="all_widgets"><div class="losers-widget"></div></div></div>
+          <button type="button" class="collapsible">Most Volume Widget</button>
+          <div class="content"><div class="all_widgets"><div class="volume-widget"></div></div></div>
+        </div>
+      <div class=singleRICWidgets>
+        <button type="button" class="collapsible">Instrument Info Widget</button>
+        <div class="content"><div class="all_widgets"><div class="instrument-info-widget"></div></div></div> 
+        <button type="button" class="collapsible">Order Book Widget</button>
+        <div class="content"><div class="all_widgets"><div class="order-book-widget"></div></div></div>
+        <button type="button" class="collapsible">Key Figures Widget</button>
+        <div class="content"><div class="all_widgets"><div class="key-figures-widget"></div></div></div>
+        <button type="button" class="collapsible">Price Chart Widget</button>
+        <div class="content"><div class="all_widgets"><div class="price-chart-widget"></div></div></div>    
+        <button type="button" class="collapsible">Time & Sales Widget</button>
+        <div class="content"><div class="all_widgets"><div class="time-sales-widget"></div></div></div>                    
+      </singleRICWidgets>
+    </div>
+
+    <script type='text/javascript'>
+      handleMarquee();
+      /* Manual Login (for integration test only !) */
+      if (dory.ServiceAuth.isSessionValid() === true) {
+        console.log('had valid session');
+        addWidgets();
+      } else {
+        console.log('no valid session');
+        var un = prompt("Enter Username");
+        var pw = prompt("Enter Password");
+        var product = prompt("Enter Product");
+        dory.ServiceAuth.login(un, pw, product).then(addWidgets);
+      }
+
+      /* Ticker Integration Code */
+      function addWidgets(result) {
+        var e = document.getElementById("IndexRIC");
+        var SelectedRIC = e.options[e.selectedIndex].value;
+
+        // Example: Initialize widget with specific rics to create custom tickers
+        window.tickerBandWidget = window.fdc__widgets__.WTickerBand.init('.ticker-band-widget', {
+          tickerElements: [
+            { ric: '.OSEBX', name: 'Oslo Børs', img: 'https://www.financial.com/tmp/osebx.jpg' },
+            { ric: '.OMXS30', name: 'OMXS 30', img: '' },
+            { ric: '.OMXN40', name: 'OMXN 40', img: '' },
+            { ric: '.GDAXI', name: 'Frankfurt DAX', img: 'https://www.financial.com/tmp/gdaxi.jpg' },
+            { ric: '.NDX', name: 'Nasdaq', img: 'https://www.financial.com/tmp/ndx.jpg'},
+            { ric: 'CLc1', name: 'Oil Future', img: 'https://www.financial.com/tmp/clc1.jpg' },
+            { ric: '.GBDOW', name: 'GBDOW', img: '' },
+            { ric: '.FCHI', name: 'CAC 40', img: '' },
+            { ric: '.DJI', name: 'DJI', img: '' },
+            { ric: '.IXIC', name: 'S&P 500', img: '' },
+            { ric: '.ADOW', name: 'ADOW', img: '' },
+            { ric: 'XAU=X', name: 'Gold', img: '' },
+            { ric: 'BFO-', name: 'Brent', img: 'https://www.financial.com/tmp/clc1.jpg' }
+          ],
+          truncateNames: true
+        });
+
+        // collapsible blocks
+        var coll = document.getElementsByClassName("collapsible");
+        var i;
+
+        for (i = 0; i < coll.length; i++) {
+        coll[i].addEventListener("click", function() {
+            this.classList.toggle("active");
+            var content = this.nextElementSibling;
+            if (content.style.display === "block") {
+            content.style.display = "none";
+            console.log('collapsed');
+            } else {
+            content.style.display = "block";
+            console.log('expanded');
+            }
+        });
+        }
+        
+        // Example: Get ticker clicks
+        tickerBandWidget.onClick(function callBack(event) {
+          console.log('[API] onClick event from tickerBand. RIC: ', event.ric);
+        });
+
+        /* Example: Initialize widget with default settings */
+        window.winners = window.fdc__widgets__.WWinnersLosers.init('.winners-widget', {
+          exchange: 'Oslo',
+          table: 'gainers'
+        });
+
+        window.losers = window.fdc__widgets__.WWinnersLosers.init('.losers-widget', {
+          exchange: 'Oslo',
+          table: 'losers'
+        });
+
+        window.mostvolume = window.fdc__widgets__.WWinnersLosers.init('.volume-widget', {
+          exchange: 'Oslo',
+          table: 'mosttraded'
+        });
+
+        /* Example: Initialize widget with default settings */
+        window.mainIndex = window.fdc__widgets__.WMainIndex.init('.main-index-widget',{
+          ric: SelectedRIC
+        });
+        mainIndex.setHeader(true);
+
+        /* Example: Initialize widget with default settings */
+        window.trends = window.fdc__widgets__.WTrends.init('.trends-widget');
+
+        //Example: Initialize widget with default settings 
+        window.marketList = window.fdc__widgets__.WMarketList.init('.market-list-widget', {
+        indexRic: SelectedRIC,
+        columns: [
+          {
+            headerName: 'Ticker',
+            field: 'x._TICKER'
+          },
+          {
+            headerName: 'Name',
+            field: 'q._DSPLY_NAME',
+            minWidth: 130
+          },
+          {
+            headerName: '',
+            field: 'q.RIC',
+            type: 'button',
+            buttons: [
+              {
+                id: 'btn_01',
+                label: 'Buy',
+                style: 'width: 40px; height: 20px; background-color: #e0e0ff; margin: 0 1px;'
+              },
+              {
+                id: 'btn_02',
+                label: 'Sell',
+                style: 'width: 40px; height: 20px; background-color: #ffe0e0; margin: 0 1px;'
+              },
+              {
+                id: 'btn_03',
+                style:
+                  'width: 20px; height: 20px; background-image: url("http://www.financial.com/tmp/dnb_testicon.png"); background-size: 20px 20px; border: none; margin: 0 1px;'
+              }
+            ],
+            width: 106
+          },
+          {
+            headerName: 'Price',
+            field: 'q._TRDPRC_1',
+            cellStyle: { 'background-color': '#f7f2f4' }
+          },
+          {
+            headerName: '+/-',
+            field: 'q._NETCHNG_1'
+          },
+          {
+            headerName: '%',
+            field: 'q._PCTCHNG'
+          },
+          {
+            headerName: 'Bid',
+            field: 'q._BID',
+            cellStyle: { 'background-color': '#f7f2f4' }
+          },
+          {
+            headerName: 'Ask',
+            field: 'q._ASK',
+            cellStyle: { 'background-color': '#f7f2f4' }
+          // },
+          // {
+          //   headerName: 'Industry',
+          //   field: 'x._INDUSTRY_REU'
+          // },
+          // {
+          //   headerName: 'P/E Ratio',
+          //   field: 'x._KGV'
+          }
+        ]
+      });
+
+        /* Example: Initialize widget with default settings */
+        window.heatmap = window.fdc__widgets__.WHeatmap.init('.heatmap-widget' ,{
+          indexRic: SelectedRIC
+        });
+        
+
+        // Example: Change color
+        heatmap.setColors({
+          volatilityLow: '#b80870',
+          volatilityHigh: '#f637a8',
+          fundamentalsLow: '#b75b00',
+          fundamentalsHigh: '#ff7f00',
+          changeNegative: '#a65549',
+          changeNeutral: '#e6e6e6',
+          changePositive: '#0489bc',
+          defaultLow: '#009db5',
+          defaultHigh: '#00ccea'
+        });
+
+        /* Example: Initialize widget with default settings */
+        window.orderBook = window.fdc__widgets__.WOrderBook.init('.order-book-widget');
+        // Example: Order Book Buttons
+        orderBook.onBuy(function callBack(event) {
+          console.log('[API] onClick event from Order Book. RIC: ', event.data.ask);
+        });
+        orderBook.onSell(function callBack(event) {
+          console.log('[API] onClick event from Order Book. RIC: ', event.data.bid);
+        });
+
+        /* Example: Initialize widget with default settings */
+        window.instrumentInfo = window.fdc__widgets__.WInstrumentInfo.init('.instrument-info-widget');
+
+        // Example: Instrument Info Buttons
+        instrumentInfo.onClick(function callBack(event) {
+          console.log('[API] onClick event from instrumentInfo. RIC: ', event.target.dataset.ric);
+          var myNewWindow = window.open("chart.html?RIC=" + event.target.dataset.ric, "newWindow", "width=500,height=700");
+        });
+        // Example: Set a Buttons after initialisation
+        instrumentInfo.setButtons([
+          // {
+          //   id: 'btn_01',
+          //   label: 'Buy',
+          //   style: 'background-color: #4f6b06; color:#fff;border:1px solid #4d5210;'
+          // },
+          // {
+          //   id: 'btn_02',
+          //   label: 'Sell',
+          //   class: 'btn-info'
+          // },
+          {
+            id: 'btn_03',
+            label: 'Chart',
+            style: 'background-color: #90589c; color:#fff;border:1px solid #5d1577;'
+          }
+        ]);
+
+        /* Example: Initialize widget with default settings */
+        window.keyFigures = window.fdc__widgets__.WKeyFigures.init('.key-figures-widget');
+
+        /* Example: Initialize widget with a ric and custom columns */
+        window.timeSales = window.fdc__widgets__.WTimeSales.init('.time-sales-widget', {
+          ric: SelectedRIC
+        });
+
+        window.marketTiles = window.fdc__widgets__.WMarketTiles.init('.market-tiles-widget',{
+          indexRic: SelectedRIC
+        });
+
+        /* Example: Initialize widget with default settings */
+        window.priceChart = window.fdc__widgets__.WPriceChart.init('.price-chart-widget', {
+          ric: SelectedRIC,
+          displayVolume: true
+        });
+      }
+      function updateLists() {
+        mainIndex.setRic(document.getElementById("IndexRIC").value);
+        marketList.setIndexRic(document.getElementById("IndexRIC").value);
+        heatmap.setIndexRic(document.getElementById("IndexRIC").value);
+        marketTiles.setIndexRic(document.getElementById("IndexRIC").value);
+        trends.setRic(document.getElementById("IndexRIC").value);
+      }
+
+      function updateWL() {
+        winners.setExchange(document.getElementById("WLMarket").value);
+        losers.setExchange(document.getElementById("WLMarket").value);
+        mostvolume.setExchange(document.getElementById("WLMarket").value);
+      }
+
+            // Example: Get click events
+      marketTiles.onClick(function callBack(event) {
+        console.log('[API] onClick event from marketTiles. RIC: ', event.ric);
+        orderBook.setRic(event.ric);
+        instrumentInfo.setRic(event.ric);
+        keyFigures.setRic(event.ric);
+        priceChart.setRic(event.ric);
+        timeSales.setRic(event.ric);
+      });
+
+      winners.onBuy(function callBack(event) {
+        console.log('[API] onClick event from winnersLosers. RIC: ', event.data.ric);
+        orderBook.setRic(event.ric);
+        instrumentInfo.setRic(event.ric);
+        keyFigures.setRic(event.ric);
+        priceChart.setRic(event.ric);
+        timeSales.setRic(event.ric);
+      });
+
+
+      marketList.onClick(function callBack(event) {
+        console.log('[API] onClick event from marketList. RIC: ', event.ric);
+        orderBook.setRic(event.ric);
+        instrumentInfo.setRic(event.ric);
+        keyFigures.setRic(event.ric);
+        priceChart.setRic('BA.N');
+        timeSales.setRic(event.ric);
+        if (event.button) {
+          console.log('[API] onClick event for ric:', event.ric, 'from button:', event.button.id);
+          if (event.button.id == 'btn_03') {
+            var myNewWindow = window.open("chart.html?RIC=" + event.ric, "newWindow", "width=500,height=700");
+          }
+        } else {
+          console.log(
+            '[API] onClick event for ric:',
+            event.ric,
+            'from cell:',
+            event.gridContext.colDef.field,
+            'value:',
+            event.gridContext.value
+          );
+        }
+      });
+      function handleMarquee(){
+      	const marquee = document.querySelectorAll('.marquee');
+      	let speed = 2;
+      	let lastScrollPos = 0;
+      	let timer;
+      	
+      	marquee.forEach(function(el){
+      		const container = el.querySelector('.inner');
+      		const content = el.querySelector('.inner > *');
+      		//Get total width
+      		const  elWidth = content.offsetWidth;
+      		
+      		//Duplicate content
+      		let clone = content.cloneNode(true);
+      		container.appendChild(clone);
+      		
+      		let progress = 1;
+      		function loop(){
+      			progress = progress-speed;
+      			if(progress <= elWidth*-1) {progress=0;}
+      			container.style.transform = 'translateX(' + progress + 'px)';
+      			container.style.transform += 'skewX(' + speed*0.4 + 'deg)';
+      			
+      			window.requestAnimationFrame(loop);
+      		}
+      		loop();
+      	});
+      	
+      	window.addEventListener('scroll', function(){
+      		const maxScrollValue = 12;
+      		const newScrollPos = window.scrollY;
+      		let scrollValue = newScrollPos - lastScrollPos;
+      		
+      		
+      		if( scrollValue > maxScrollValue ) scrollValue = maxScrollValue;
+          else if( scrollValue < -maxScrollValue ) scrollValue = -maxScrollValue;
+      		
+      		speed = scrollValue;
+      		
+      		clearTimeout(timer);
+          timer = setTimeout(handleSpeedClear, 10);
+      	});
+      	
+      	function handleSpeedClear(){
+      		speed = 2;
+      	}
+      };
+
+
+
+
+    </script>
+
+    <!-- Example: Overwrite/customize widget css -->
+    <style>
+      .winners-losers-widget {
+        height: 150px;
+      }
+      .main-index-widget {
+        /* width: 300px; */
+        padding: 10px;
+        font-size: 11px;
+      }
+      /* .ticker-band-widget {
+         height: 55px; */
+        /* width: 3000px; 
+      } */
+      .ticker-band-widget .ticker-element {    
+        font-size: 11px;
+        padding: 0 0.1em;
+      }
+      .market-list-widget {
+        height: 400px;
+      }
+      .order-book-widget {
+        height: 140px;
+      }
+      .heatmap-widget {
+        height: 350px;
+      }
+
+      /* .key-figures-widget {
+        max-width: 560px;
+      } */
+      .price-chart-widget {
+        height: 550px;
+      }
+      .time-sales-widget {
+        height: 300px;
+      }
+      .market-tiles-widget {
+        height: 300px;
+      }
+      .all_widgets {
+        border-style: solid;
+        border-width: thin;
+        border-color: blue;
+        margin-bottom: 10px;
+      }
+    </style>
+  </body>
+</html>
