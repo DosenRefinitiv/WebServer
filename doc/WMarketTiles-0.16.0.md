@@ -57,7 +57,7 @@ Set index during runtime.
 
 ```js
 // Example: Set index after initialisation
-marketTiles.setIndexRic('.GDAXI');
+marketTiles.setIndexRic('.SPX');
 ```
 
 - **ric** (_String_): Reuters Instrument Code (RIC)
